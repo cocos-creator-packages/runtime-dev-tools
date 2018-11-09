@@ -1,0 +1,8 @@
+<div>
+    <ui-button @click="installApk">安装runtime</ui-button>
+    <ui-prop name="rpk路径">
+        <ui-input class="flex-1" v-value="rpkPath"></ui-input>
+        <ui-button class="tiny" v-on:confirm="onChooseRpkPath">···</ui-button>
+        <ui-button class="tiny" v-on:confirm="onPushClick">推送</ui-button>
+    </ui-prop>
+</div>
