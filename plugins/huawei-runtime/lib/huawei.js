@@ -2,6 +2,8 @@
 const fs = require('fire-fs');
 const path = require('fire-path');
 const url = require('fire-url');
+const {spawn} = require('child_process');
+
 const network = require('./network');
 
 let phone = require(Editor.url('packages://runtime-dev-tools/utils/phone'));
@@ -98,7 +100,7 @@ class huawei extends base {
      */
     async installRuntime() {
         if (!this.runtimeApkPath) {
-            info.error('can\'t find runtime apk');
+            info.error('找不到 runtime apk');
             return;
         }
         this.state = RUNTIME_STATE.installing;
@@ -108,14 +110,21 @@ class huawei extends base {
         info.log('runtime 安装完成');
     }
 
-    async pushRpkToPhone(path) {
+    _checkPhoneConnect() {
         if (!phone.currentPhone) {
             info.warn('当前没有手机连接，请先连接手机');
+            return false;
+        }
+        return true;
+    }
+
+    async pushRpkToPhone(rpkPath) {
+        if (!this._checkPhoneConnect()) {
             return;
         }
         info.log('开始推送');
         this.state = RUNTIME_STATE.pushing;
-        let transfer = await phone.push(phone.currentPhone.id, path, RUNTIME_RPK_PATH + "com.demo.huaweiexample.rpk");
+        let transfer = await phone.push(phone.currentPhone.id, rpkPath, path.join(RUNTIME_RPK_PATH, path.basename(rpkPath)));
         transfer.on('progress', function (stats) {
             info.log(`推送中 ${stats.bytesTransferred} bytes`);
         });
@@ -131,14 +140,36 @@ class huawei extends base {
 
     /**
      * 启动runtime
-     * @param path
+     * @param rpkPath
      * @param param
      * @returns {Promise.<void>}
      */
-    async startRuntimeWithRpk(path, param) {
+    async startRuntimeWithRpk(rpkPath, param) {
+        if (!this._checkPhoneConnect()) {
+            return;
+        }
         info.log('启动 runtime 中');
-        await phone.shell(phone.currentPhone.id, `adb shell am start --es rpkpath ${path} --ei ${param} --activity-clear-top com.huawei.fastapp.dev/com.huawei.fastapp.app.RpkRunnerActivity`);
+        rpkPath = path.join('file://', RUNTIME_RPK_PATH, 'com.demo.huaweiexample.rpk');
+        param = 'debugmode 2 ';
+        let output = await phone.shell(phone.currentPhone.id, `am start --es rpkpath ${rpkPath} --ei ${param} --activity-clear-top com.huawei.fastapp.dev/com.huawei.fastapp.app.RpkRunnerActivity`);
         info.log('启动 runtime 完成');
+    }
+
+    /**
+     * 打开logcat记录日志
+     */
+    openLogcat() {
+        if (!this._checkPhoneConnect()) {
+            return;
+        }
+        const proc = spawn('adb', ['-s', phone.currentPhone.id, 'shell', 'logcat', '-s', 'jsLog']);
+        proc.stdout.on('data', (msg) => {
+            console.log('data is ', msg.toString('utf-8'));
+        });
+
+        proc.on('close', (code) => {
+            console.log('exit code is ', code);
+        })
     }
 
     /**
@@ -146,8 +177,11 @@ class huawei extends base {
      * @returns {Promise.<void>}
      */
     async stopRuntime() {
+        if (!this._checkPhoneConnect()) {
+            return;
+        }
         info.log('停止 runtime');
-        await phone.shell(phone.currentPhone.id, 'adb shell am force-stop com.huawei.fastapp.dev');
+        await phone.shell(phone.currentPhone.id, ' am force-stop com.huawei.fastapp.dev');
     }
 
 }

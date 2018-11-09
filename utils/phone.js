@@ -1,5 +1,6 @@
 const base = require('./base');
 const adbKit = require('adbkit');
+
 class phone extends base {
     constructor() {
         super();
@@ -39,7 +40,7 @@ class phone extends base {
      */
     async shell(id, command) {
         try {
-            await this.adb.shell(id, command);
+            return await this.adb.shell(id, command,).then(adbKit.util.readAll);
         } catch (e) {
 
         }
@@ -111,6 +112,8 @@ class phone extends base {
             this.list.splice(this.list.indexOf(rph), 1);
             if (this.list.indexOf(this.currentPhone) === -1) {
                 this.currentPhone = this.list[0];
+            } else {
+                this.currentPhone = null;
             }
         }
 

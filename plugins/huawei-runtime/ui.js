@@ -8,6 +8,7 @@ const ps = require('path'); // path system
 const dialog = require('electron').remote.dialog;
 const huawei = require('./lib/huawei');
 
+let phone = require(Editor.url('packages://runtime-dev-tools/utils/phone'));
 exports.template = fs.readFileSync(Editor.url('packages://runtime-dev-tools/plugins/huawei-runtime/ui.html'), 'utf-8');
 
 exports.props = [];
@@ -25,6 +26,17 @@ exports.computed = {};
 exports.methods = {
     t (key) {
         return Editor.T(key);
+    },
+    register_handler(){
+        phone.on('add_device', (id) => {
+            if (id != phone.currentPhone.id) {
+                huawei.openLogcat();
+            }
+        });
+
+        phone.on('remove_device', (id) => {
+
+        });
     },
 
     async installApk(){
@@ -45,12 +57,18 @@ exports.methods = {
 
     async onPushClick(){
         await huawei.pushRpkToPhone(this.rpkPath);
+    },
+
+    async startRuntime(){
+        await huawei.startRuntimeWithRpk(1, 1);
     }
 
 };
 
-exports.created = function () {
-    huawei.checkRuntimeVersion();
+exports.created = async function () {
+    await huawei.checkRuntimeVersion();
+
+    huawei.openLogcat();
 };
 
 exports.directives = {};
