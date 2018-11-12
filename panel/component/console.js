@@ -5,20 +5,25 @@
  */
 const fs = require('fs');
 const ps = require('path'); // path system
+const console = require('../../utils/log'); // path system
 
 const Dialog = require('electron').remote.dialog;
 
 exports.template = fs.readFileSync(ps.join(__dirname, '../template/console.html'), 'utf-8');
 
-exports.props = [
-
-];
+exports.props = [];
 
 exports.data = function () {
-    return {};
+    return {
+        logs: console.logs
+    };
 };
 
-exports.watch = {};
+exports.watch = {
+    logs: function (val) {
+        this.$el.scrollTop = this.$el.scrollHeight;
+    }
+};
 
 exports.computed = {};
 

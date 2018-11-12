@@ -21,8 +21,12 @@ exports.data = function () {
     return {
         width: 0, // panel 的宽度
         loading: false,
-        platform: phone.platform,
+        platform: phone.options.actualPlatform,
     };
+};
+
+exports.watch = {
+
 };
 
 exports.methods = {

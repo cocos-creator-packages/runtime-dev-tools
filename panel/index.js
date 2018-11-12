@@ -9,7 +9,12 @@ Editor.Panel.extend({
 
     listeners: {
         'panel-resize'() {
-            this.vm.width = this.clientWidth;
+            if (!this.vm) {
+                return;
+            }
+
+            this.vm.width = event.target.clientWidth;
+            this.vm.height = event.target.clientHeight;
         },
     },
 
@@ -19,12 +24,11 @@ Editor.Panel.extend({
 
     messages: {},
 
-    run (args) {
-        phone.platform = 'huawei-runtime';
+    run (options) {
+        phone.options = options;
     },
 
     ready () {
-        phone.platform = 'huawei-runtime';
         //todo:因为有时候需要传入参数，但是run又在ready后面执行,而且如果没有参数就不执行run回调，所以只能做这个兼容
         process.nextTick(() => {
             this.vm = new Vue({
@@ -33,9 +37,10 @@ Editor.Panel.extend({
                 components: home.components,
                 created: home.created,
                 methods: home.methods,
+                watch: home.watch,
             });
             this.vm.width = this.clientWidth;
-            this.vm.platform = this.platform;
+            this.vm.platform = phone.options.actualPlatform;
         });
     },
 

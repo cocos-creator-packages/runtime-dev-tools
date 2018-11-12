@@ -38,7 +38,7 @@ exports.methods = {
     },
 
     updateSelPhone(){
-        this.curSel = adb.currentPhone;
+        this.curSel = phone.currentPhone;
     },
 
     registerEvent(){

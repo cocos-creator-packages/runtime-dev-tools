@@ -11,10 +11,14 @@ const Dialog = require('electron').remote.dialog;
 
 exports.template = fs.readFileSync(ps.join(__dirname, '../template/main.html'), 'utf-8');
 
-exports.props = [];
+exports.props = [
+    "platform"
+];
+
 exports.components = {
-    runtime: require(Editor.url(`packages://runtime-dev-tools/plugins/huawei-runtime/ui.js`))
+    "huawei-runtime": require(Editor.url(`packages://runtime-dev-tools/plugins/huawei-runtime/ui.js`))
 };
+
 exports.data = function () {
     return {};
 };

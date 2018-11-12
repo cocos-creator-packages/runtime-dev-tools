@@ -3,10 +3,12 @@
   display: flex;
 }
 :host .home {
+  color: #bdbdbd;
   flex: 1;
   display: flex;
   flex-direction: column;
   margin: 3px;
+  width: 100%;
 }
 :host .home .top {
   flex: 3;
@@ -43,13 +45,20 @@
 }
 .console {
   padding: 5px;
-  line-height: 24px;
-  overflow: auto;
-  display: flex;
-  flex-direction: row;
-  height: 100%;
+  line-height: 1.5em;
+  overflow: scroll;
+  display: block;
   background: #333;
   flex: 2;
+}
+.console .warn {
+  color: #fd942b;
+}
+.console .error {
+  color: red;
+}
+.console .debug {
+  color: #10bc79;
 }
 .phone {
   padding: 5px;
@@ -71,20 +80,17 @@
   background: #059;
 }
 .info {
-  padding: 5px;
+  padding: 5px 15px;
   line-height: 15px;
   height: 15px;
   text-align: right;
 }
-.info .log {
-  color: #FFFFFF;
+.warn {
+  color: #fd942b;
 }
-.info .warn {
-  color: #333333;
-}
-.info .error {
+.error {
   color: red;
 }
-.info .debug {
-  color: green;
+.debug {
+  color: #10bc79;
 }

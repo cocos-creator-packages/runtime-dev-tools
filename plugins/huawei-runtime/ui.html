@@ -1,10 +1,60 @@
-<div>
-    <ui-button @click="installApk" disabled>安装runtime</ui-button>
+<div class="ui">
+    <div class="play">
+        <div class="play-layout">
+            <ui-button class="transparent big play-btn" @click="launch">
+                <i class="fa fa-play"></i>
+            </ui-button>
+            <ui-button class="transparent big play-btn" @click="stop">
+                <i class="fa icon-cancel"></i>
+            </ui-button>
+        </div>
+    </div>
     <ui-prop name="rpk路径">
-        <ui-input class="" v-value="rpkPath"></ui-input>
+        <ui-input v-value="rpkPath" class="flex-1"></ui-input>
         <ui-button class="tiny" v-on:confirm="onChooseRpkPath">···</ui-button>
-        <ui-button class="tiny" v-on:confirm="onPushClick">推送</ui-button>
     </ui-prop>
 
-    <ui-button @click="startRuntime">运行</ui-button>
+
+    <ui-prop name="URI">
+        <ui-input class="flex-1" v-value="uri"></ui-input>
+    </ui-prop>
+
+    <ui-prop name="params">
+        <ui-input class="flex-1" v-value="params"></ui-input>
+    </ui-prop>
+
+    <ui-prop name="maxwidth">
+        <ui-num-input class="flex-1" type="int" v-value="maxWidth"></ui-num-input>
+    </ui-prop>
+
+    <ui-prop name="调试模式">
+        <ui-checkbox class="flex-1" :checked="debug">
+
+        </ui-checkbox>
+    </ui-prop>
 </div>
+
+<style scoped>
+    .ui {
+        margin: 10px 10px;
+        padding: 0 10px;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .play {
+        text-align: center;
+    }
+
+    .play-layout {
+        display: inline-block;
+        background: #444444;
+        height: 35px;
+        margin-bottom: 10px;
+        border-radius: 3px;
+    }
+
+    .play-btn {
+        width: 50px;
+    }
+</style>

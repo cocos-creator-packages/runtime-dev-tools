@@ -3,6 +3,7 @@ const fs = require('fire-fs');
 const path = require('fire-path');
 const url = require('fire-url');
 const {spawn} = require('child_process');
+const dialog = require('electron').remote.dialog;
 
 const network = require('./network');
 
@@ -16,7 +17,12 @@ let RUNTIME_DOWNLOAD_PATH = Editor.url(`profile://global/download/runtime/huawei
 
 //华为runtime版本请求地址
 const RUNTIME_REQUEST_URL = 'https://deveco.huawei.com/FastIDE/update/api/update/engineVersion/';
+//rpk 推送的默认路径
+const RUNTIME_RPK_PATH = '/data/local/tmp/';
+//runtime的包名
+const RUNTIME_PACKAGE_NAME = 'com.huawei.fastapp.dev';
 
+const RPK_DEFAULT_PATH = path.join('huawei', 'dist', 'huawei.rpk');
 const RUNTIME_STATE = {
     free: 0,//空闲
     downloading: 1,//下载runtime
@@ -24,7 +30,44 @@ const RUNTIME_STATE = {
     pushing: 3,//推数据到手机
 };
 
-const RUNTIME_RPK_PATH = '/data/local/tmp/';
+
+let _compareVersion = function (src, dest) {
+    let large = false;
+    let srcArr = src.split('.');
+    let destArr = dest.split('.');
+    for (let i = 0; i < srcArr.length; i++) {
+        let sptSrc = srcArr[i];
+        let sptDest = destArr[i];
+        if (i === srcArr.length - 1) {
+            let isSrcDev = false;
+            let isDestDev = false;
+            if (srcArr[i].split("_").length > 1) {
+                sptSrc = srcArr[i].split("_")[0];
+                isSrcDev = true;
+            }
+
+            if (destArr[i] && destArr[i].split("_").length > 1) {
+                sptDest = destArr[i].split("_")[0];
+                isDestDev = true;
+            }
+
+            if (sptSrc === sptDest) {
+                large = !isSrcDev && isDestDev;
+                break;
+            }
+        }
+
+        if (sptSrc > sptDest) {
+            large = true;
+            break;
+        } else if (sptSrc < sptDest) {
+            large = false;
+            break;
+        }
+    }
+    return large;
+};
+
 /**
  * 用来放跟华为相关的一些操作
  */
@@ -34,6 +77,12 @@ class huawei extends base {
         super();
         this.state = RUNTIME_STATE.free;
         this.runtimeApkPath = null;
+        this.logList = {};
+        window.huawei = this;
+    }
+
+    get rpkPath() {
+        return path.join(phone.options.buildPath, RPK_DEFAULT_PATH);
     }
 
     /**
@@ -58,7 +107,8 @@ class huawei extends base {
         let version = await this.requestRuntimeVersion();
         let urlParam = version.url.split('/');
         let runtimeVersion = urlParam[urlParam.length - 1];
-        info.log(`当前最新 runtime 版本:${runtimeVersion}`);
+        this.runtimeVersion = version.version;
+        log.debug(`当前最新 runtime 版本:${version.version}`);
 
         let filePath = path.join(RUNTIME_DOWNLOAD_PATH, runtimeVersion);
         if (!fs.existsSync(filePath)) {
@@ -88,10 +138,42 @@ class huawei extends base {
     /**
      * 检测手机的runtime版本
      */
-    checkPhoneRuntimeVersion() {
-        if (!phone.currentPhone) {
-            info.warn('当前没有手机连接，请先连接手机');
+    async checkPhoneRuntimeVersion() {
+        if (!this._checkPhoneConnect()) {
+            return;
         }
+
+        let version = await phone.shell(phone.currentPhone.id, `dumpsys package ${RUNTIME_PACKAGE_NAME} | grep versionName`);
+        version = version.split("=");
+
+        if (version.length <= 0) {
+            info.warn(`获取不到runtime版本`);
+            return
+        }
+
+        version = version[1];
+        log.debug('当前手机 runtime 版本', version);
+        return this.compareRuntime(version);
+    }
+
+    /**
+     * 比较下version和本机记录的版本哪个比较新
+     * @param version
+     * @returns {boolean}
+     */
+    compareRuntime(version) {
+        return _compareVersion(this.runtimeVersion, version);
+    }
+
+    /**
+     * 判断runtime是否安装
+     * @returns {Promise.<*>}
+     */
+    async isRuntimeInstalled() {
+        if (!this._checkPhoneConnect()) {
+            return;
+        }
+        return await phone.isInstalled(phone.currentPhone.id, RUNTIME_PACKAGE_NAME);
     }
 
     /**
@@ -103,11 +185,48 @@ class huawei extends base {
             info.error('找不到 runtime apk');
             return;
         }
+
         this.state = RUNTIME_STATE.installing;
-        info.log('安装 runtime 中');
+        info.log('runtime 安装中');
         await phone.install(phone.currentPhone.id, this.runtimeApkPath);
         this.state = RUNTIME_STATE.free;
         info.log('runtime 安装完成');
+    }
+
+    /**
+     * 检查runtime的一套逻辑
+     * 1.先检查看看有没有安装，没有安装就直接安装
+     * 2.如果安装了，那么检查下版本有没有更新，没有就安装新版本
+     * @returns {Promise.<void>}
+     */
+    async checkRuntime() {
+        if (!this._checkPhoneConnect()) {
+            return;
+        }
+
+        if (!await this.isRuntimeInstalled()) {
+            await this.installRuntime();
+            return;
+        }
+
+        info.log('runtime 已安装，开始检测 runtime 版本');
+        if (await this.checkPhoneRuntimeVersion()) {
+            dialog.showMessageBox({
+                type: 'info',
+                title: 'Runtime 更新',
+                message: 'runtime 版本有更新，是否安装?',
+                buttons: ['是', '否']
+            }, async(response) => {
+                if (0 == response) {
+                    await this.installRuntime();
+                } else {
+                    log.warn('您取消了 runtime 的更新，可能会导致您无法调试');
+                    info.warn('您取消了 runtime 的更新，可能会导致您无法调试');
+                }
+            });
+        } else {
+            info.log('当前 runtime 版本为最新版本');
+        }
     }
 
     _checkPhoneConnect() {
@@ -120,38 +239,42 @@ class huawei extends base {
 
     async pushRpkToPhone(rpkPath) {
         if (!this._checkPhoneConnect()) {
-            return;
+            return Promise.reject();
         }
-        info.log('开始推送');
         this.state = RUNTIME_STATE.pushing;
-        let transfer = await phone.push(phone.currentPhone.id, rpkPath, path.join(RUNTIME_RPK_PATH, path.basename(rpkPath)));
-        transfer.on('progress', function (stats) {
-            info.log(`推送中 ${stats.bytesTransferred} bytes`);
-        });
-        transfer.on('end', function () {
-            this.state = RUNTIME_STATE.free;
-            info.log('推送完成');
-        });
-        transfer.on('error', (data) => {
-            this.state = RUNTIME_STATE.free;
-            info.error('推送错误');
+        return new Promise(async(resolve, reject) => {
+            info.log('开始推送');
+            let transfer = await phone.push(phone.currentPhone.id, rpkPath, path.join(RUNTIME_RPK_PATH, path.basename(rpkPath)));
+            transfer.on('progress', function (stats) {
+                info.log(`推送中 ${stats.bytesTransferred} bytes`);
+            });
+            transfer.on('end', function () {
+                resolve();
+                this.state = RUNTIME_STATE.free;
+                info.log('推送完成');
+            });
+            transfer.on('error', (data) => {
+                reject();
+                this.state = RUNTIME_STATE.free;
+                info.error('推送错误');
+            });
         });
     }
 
     /**
      * 启动runtime
-     * @param rpkPath
+     * @param rpkName
      * @param param
      * @returns {Promise.<void>}
      */
-    async startRuntimeWithRpk(rpkPath, param) {
+    async startRuntimeWithRpk(rpkName, param) {
         if (!this._checkPhoneConnect()) {
             return;
         }
         info.log('启动 runtime 中');
-        rpkPath = path.join('file://', RUNTIME_RPK_PATH, 'com.demo.huaweiexample.rpk');
-        param = 'debugmode 2 ';
-        let output = await phone.shell(phone.currentPhone.id, `am start --es rpkpath ${rpkPath} --ei ${param} --activity-clear-top com.huawei.fastapp.dev/com.huawei.fastapp.app.RpkRunnerActivity`);
+        let rpkPath = path.join('file://', RUNTIME_RPK_PATH, rpkName);
+        let shellCmd = `am start --es rpkpath ${rpkPath} ${param} --activity-clear-top com.huawei.fastapp.dev/com.huawei.fastapp.app.RpkRunnerActivity`;
+        await phone.shell(phone.currentPhone.id, shellCmd);
         info.log('启动 runtime 完成');
     }
 
@@ -162,14 +285,34 @@ class huawei extends base {
         if (!this._checkPhoneConnect()) {
             return;
         }
-        const proc = spawn('adb', ['-s', phone.currentPhone.id, 'shell', 'logcat', '-s', 'jsLog']);
-        proc.stdout.on('data', (msg) => {
-            console.log('data is ', msg.toString('utf-8'));
-        });
 
-        proc.on('close', (code) => {
-            console.log('exit code is ', code);
-        })
+        //不延迟启动的话，可能手机还在授权中，有概率报错无法启动
+        setTimeout(() => {
+            const proc = spawn('adb', ['-s', phone.currentPhone.id, 'shell', 'logcat', '-s', 'jsLog']);
+            this.logList[phone.currentPhone.id] = proc;
+            proc.stdout.on('data', (msg) => {
+                log.log(msg.toString('utf-8'));
+            });
+
+            proc.on('close', (code) => {
+                log.log(`logcat exit with code: ${code}`);
+                for (let k in this.logList) {
+                    let item = this.logList[k];
+                    if (item = proc) {
+                        delete this.logList[k];
+                    }
+                }
+            })
+        }, 600);
+    }
+
+    /**
+     * 判断是否需要启动logcat进程
+     * @param id
+     * @returns {boolean}
+     */
+    needToCreatLogcat(id) {
+        return !this.logList[id];
     }
 
     /**
