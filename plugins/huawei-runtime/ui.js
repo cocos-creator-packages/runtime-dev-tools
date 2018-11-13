@@ -3,8 +3,8 @@
 /**
  * 显示记录的文件详细信息
  */
-const fs = require('fs');
-const path = require('path'); // path system
+const fs = require('fire-fs');
+const path = require('fire-path'); // path system
 const dialog = require('electron').remote.dialog;
 const huawei = require('./lib/huawei');
 
@@ -20,10 +20,7 @@ exports.props = [];
 exports.data = function () {
     return {
         rpkPath: huawei.rpkPath,
-        uri: "",
         params: "",
-        debug: true,
-        maxWidth: 750//华为目前只支持750和464
     };
 };
 
@@ -68,7 +65,7 @@ exports.methods = {
     },
 
     getLaunchParams(){
-        let params = ['--ei', 'debugmode', this.debug ? 2 : 1];
+        let params = ['--ei', 'debugmode', "1"];
         if (this.uri) {
             params.push('--es');
             params.push('uri');
@@ -76,20 +73,27 @@ exports.methods = {
         }
 
         if (this.params) {
-            params.push('--es');
-            params.push('params');
-            params.push(encodeURIComponent(this.params));
+
+            let str = "";
+            try {
+                str = JSON.parse(this.params);
+                params.push('--es');
+                params.push('params');
+                params.push(encodeURIComponent(this.params));
+            } catch (e) {
+                log.warn('输入的参数不是 json 格式，已被忽略');
+            }
         }
 
-        if (this.maxWidth != 750) {//华为默认750
-            params.push('--es');
-            params.push('maxwidth');
-            params.push(parseInt(this.maxWidth));
-        }
         return params.join(" ");
     },
 
     async launch(){
+        if (!fs.existsSync(this.rpkPath)) {
+            log.error('找不到rpk', this.rpkPath);
+            info.error('找不到rpk', this.rpkPath);
+            return;
+        }
         await huawei.pushRpkToPhone(this.rpkPath);
         await huawei.startRuntimeWithRpk(path.basename(this.rpkPath), this.getLaunchParams());
     },
@@ -102,8 +106,6 @@ exports.methods = {
 exports.created = async function () {
     this.register_handler();
     await huawei.checkRuntimeVersion();
-    await huawei.checkRuntime();
-    huawei.openLogcat();
 
 };
 

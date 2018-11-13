@@ -41,6 +41,14 @@ exports.methods = {
         this.curSel = phone.currentPhone;
     },
 
+    getPhoneName(item){
+        let name = item.id;
+        if (item.cp && item.name) {
+            name = item.cp + " " + item.name
+        }
+        return name;
+    },
+
     registerEvent(){
         phone.on('add_device', (device) => {
             this.updateSelPhone();

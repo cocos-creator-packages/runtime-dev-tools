@@ -8,20 +8,20 @@ class log extends base {
         this.ERROR = 'error';
     }
 
-    debug(str) {
-        this.emit('log', this.DEBUG, str);
+    debug(...str) {
+        this.emit('log', this.DEBUG, ...str);
     }
 
-    warn(str) {
-        this.emit('log', this.WARN, str);
+    warn(...str) {
+        this.emit('log', this.WARN, ...str);
     }
 
-    log(str) {
-        this.emit('log', this.LOG, str);
+    log(...str) {
+        this.emit('log', this.LOG, ...str);
     }
 
-    error(str) {
-        this.emit('log', this.ERROR, str);
+    error(...str) {
+        this.emit('log', this.ERROR, ...str);
     }
 }
 

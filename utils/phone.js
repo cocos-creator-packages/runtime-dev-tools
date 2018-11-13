@@ -1,18 +1,27 @@
 const base = require('./base');
 const adbKit = require('adbkit');
+const path = require('fire-path');
 const log = require('./log');
 
+const ANDROID_SDK_PATH = Editor.remote.App._profile.data['android-sdk-root'];
 class phone extends base {
     constructor() {
         super();
-        this.adb = adbKit.createClient();
+        if (!ANDROID_SDK_PATH) {
+            let error = '找不到 android sdk 路径，请到 偏好设置 -> 原生开发环境 中设置';
+            Editor.error(error);
+            log.error(error);
+            return;
+        }
+        this.adb = adbKit.createClient({
+            bin: this.adbPath
+        });
         this.list = [];
         this.currentPhone = null;
         this.platform = null;
         //用来接收builder传递过来的参数
         this.options = null;
         this.init();
-        window.client = this.adb;
     }
 
     init() {
@@ -21,6 +30,14 @@ class phone extends base {
         }).catch((e) => {
             log.error(e);
         });
+    }
+
+    /**
+     * 获取 adb 的路径
+     * @returns {string}
+     */
+    get adbPath() {
+        return path.join(ANDROID_SDK_PATH, 'platform-tools', 'adb');
     }
 
     /**
@@ -77,11 +94,10 @@ class phone extends base {
         try {
             let tracker = await this.adb.trackDevices();
 
-            tracker.on('add', (device) => {
-                this._addPhone(device);
+            tracker.on('add', async(device) => {
                 //延迟发送，因为手机链接有一个授权过程
-                setTimeout(() => {
-                    this.emit('add_device', device.id);
+                setTimeout(async() => {
+                    await this._addPhone(device);
                 }, 500);
             });
             tracker.on('remove', (device) => {
@@ -104,14 +120,48 @@ class phone extends base {
     async getPhoneList() {
         try {
             let list = await this.adb.listDevices();
-            list.forEach((item) => {
-                this._addPhone(item);
-            });
+            for (let i = 0; i < list.length; i++) {
+                await this._addPhone(list[i]);
+            }
             this.currentPhone = list[0];
             return this.list;
         } catch (e) {
             log.error(e);
         }
+    }
+
+    /**
+     * 获取手机型号
+     * @param id
+     * @returns {Promise.<void>}
+     */
+    async getDeviceName(id) {
+        let grepName = await this.shell(id, `cat /system/build.prop | grep model`);
+        if (grepName) {
+            grepName = grepName.split('=')[1];
+        }
+        if (!grepName) {
+            log.warn('获取不到设备型号');
+        }
+
+        return grepName;
+    }
+
+    /**
+     * 获取手机的制造商
+     * @param id
+     * @returns {Promise.<void>}
+     */
+    async getDeviceManufacturer(id) {
+        let grepManu = await this.shell(id, `cat /system/build.prop | grep brand`);
+        if (grepManu) {
+            grepManu = grepManu.split('=')[1];
+        }
+        if (!grepManu) {
+            log.warn('获取不到设备制造商');
+        }
+
+        return grepManu;
     }
 
     /**
@@ -128,20 +178,23 @@ class phone extends base {
         }
     }
 
-    async getVersion(id,) {
-    }
+    async _addPhone(item) {
 
-    _addPhone(item) {
         let same = this.list.find((ph) => {
             return ph.id === item.id;
         });
         if (!same) {
+            item.name = await this.getDeviceName(item.id);
+            item.cp = await this.getDeviceManufacturer(item.id);
             this.list.push(item);
+
+            if (this.list.length === 1) {
+                this.currentPhone = this.list[0];
+            }
+
+            this.emit('add_device', item.id);
         }
 
-        if (this.list.length === 1) {
-            this.currentPhone = this.list[0];
-        }
     }
 
     _removePhone(item) {
