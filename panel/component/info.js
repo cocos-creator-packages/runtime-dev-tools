@@ -3,8 +3,8 @@
 /**
  * 显示记录的文件详细信息
  */
-const fs = require('fs');
-const ps = require('path'); // path system
+const fs = require('fire-fs');
+const ps = require('fire-path'); // path system
 const info = require('../../utils/info');
 
 const Dialog = require('electron').remote.dialog;
@@ -30,9 +30,9 @@ exports.methods = {
     },
 
     register_handler(){
-        info.on('log', (type, str) => {
+        info.on('log', (type, ...str) => {
             this.infoType = type;
-            this.content = str;
+            this.content = str.join(' ');
         });
     }
 };

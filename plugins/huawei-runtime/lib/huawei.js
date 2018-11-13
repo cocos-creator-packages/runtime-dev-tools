@@ -23,6 +23,8 @@ const RUNTIME_RPK_PATH = '/data/local/tmp/';
 const RUNTIME_PACKAGE_NAME = 'com.huawei.fastapp.dev';
 
 const RPK_DEFAULT_PATH = path.join('huawei', 'dist', 'huawei.rpk');
+
+
 const RUNTIME_STATE = {
     free: 0,//空闲
     downloading: 1,//下载runtime
@@ -288,7 +290,7 @@ class huawei extends base {
 
         //不延迟启动的话，可能手机还在授权中，有概率报错无法启动
         setTimeout(() => {
-            const proc = spawn('adb', ['-s', phone.currentPhone.id, 'shell', 'logcat', '-s', 'jsLog']);
+            const proc = spawn(phone.adbPath, ['-s', phone.currentPhone.id, 'shell', 'logcat', '-s', 'jsLog']);
             this.logList[phone.currentPhone.id] = proc;
             proc.stdout.on('data', (msg) => {
                 log.log(msg.toString('utf-8'));

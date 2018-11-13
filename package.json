@@ -4,13 +4,6 @@
     "description": "Runtime runner",
     "author": "Cocos Creator",
     "main": "main.js",
-    "main-menu": {
-        "i18n:MAIN_MENU.panel.title/runtime runner": {
-            "icon": "panel/icon.png",
-            "accelerator": "CmdOrCtrl+2",
-            "message": "runtime-dev-tools:open"
-        }
-    },
     "panel": {
         "main": "panel/index.js",
         "type": "dockable",
