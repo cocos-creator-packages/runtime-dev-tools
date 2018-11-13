@@ -81,7 +81,7 @@ exports.methods = {
                 params.push('params');
                 params.push(encodeURIComponent(this.params));
             } catch (e) {
-                log.warn('输入的参数不是 json 格式，已被忽略');
+                log.warn('输入的参数不是 JSON 格式，已被忽略');
             }
         }
 

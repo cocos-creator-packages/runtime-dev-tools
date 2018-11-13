@@ -8,7 +8,7 @@ class phone extends base {
     constructor() {
         super();
         if (!ANDROID_SDK_PATH) {
-            let error = '找不到 android sdk 路径，请到 偏好设置 -> 原生开发环境 中设置';
+            let error = '找不到 Android SDK 路径，请到 偏好设置 -> 原生开发环境 中设置';
             Editor.error(error);
             log.error(error);
             return;
