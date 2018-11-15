@@ -136,10 +136,7 @@ class phone extends base {
      * @returns {Promise.<void>}
      */
     async getDeviceName(id) {
-        let grepName = await this.shell(id, `cat /system/build.prop | grep model`);
-        if (grepName) {
-            grepName = grepName.split('=')[1];
-        }
+        let grepName = await this.shell(id, `getprop ro.product.model`);
         if (!grepName) {
             log.warn('获取不到设备型号');
         }
@@ -153,10 +150,7 @@ class phone extends base {
      * @returns {Promise.<void>}
      */
     async getDeviceManufacturer(id) {
-        let grepManu = await this.shell(id, `cat /system/build.prop | grep brand`);
-        if (grepManu) {
-            grepManu = grepManu.split('=')[1];
-        }
+        let grepManu = await this.shell(id, `getprop ro.product.brand`);
         if (!grepManu) {
             log.warn('获取不到设备制造商');
         }
