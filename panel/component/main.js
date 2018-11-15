@@ -3,21 +3,17 @@
 /**
  * 显示记录的文件详细信息
  */
-const fs = require('fs');
+const fs = require('fire-fs');
 const phone = require('../../utils/phone');
-const ps = require('path'); // path system
+const path = require('fire-path'); // path system
 
 const Dialog = require('electron').remote.dialog;
 
-exports.template = fs.readFileSync(ps.join(__dirname, '../template/main.html'), 'utf-8');
+exports.template = fs.readFileSync(path.join(__dirname, '../template/main.html'), 'utf-8');
 
 exports.props = [
     "platform"
 ];
-
-exports.components = {
-    "huawei-runtime": require(Editor.url(`packages://runtime-dev-tools/plugins/huawei-runtime/ui.js`))
-};
 
 exports.data = function () {
     return {};
@@ -39,3 +35,19 @@ exports.created = function () {
 };
 
 exports.directives = {};
+
+exports.components = {};
+
+(function () {
+    let dirs = fs.readdirSync(Editor.url('packages://runtime-dev-tools/plugins/'));
+    dirs.forEach((name) => {
+        let dirPath = path.join(Editor.url('packages://runtime-dev-tools/plugins/'), name);
+        let uiEntry = path.join(Editor.url('packages://runtime-dev-tools/plugins/'), name, 'ui.js');
+        if (fs.isDirSync(dirPath) && fs.existsSync(uiEntry)) {
+            exports.components[name] = require(uiEntry);
+        } else {
+            Editor.warn(`load ${name} runtime dev plugin fail`);
+        }
+    })
+
+})();
