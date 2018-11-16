@@ -14,7 +14,8 @@ class phone extends base {
             return;
         }
         this.adb = adbKit.createClient({
-            bin: this.adbPath
+            bin: this.adbPath,
+            port:process.env.ANDROID_ADB_SERVER_PORT || 5037
         });
         this.list = [];
         this.currentPhone = null;
