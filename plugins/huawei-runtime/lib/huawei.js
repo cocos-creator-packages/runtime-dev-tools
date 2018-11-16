@@ -246,7 +246,10 @@ class huawei extends base {
         this.state = RUNTIME_STATE.pushing;
         return new Promise(async(resolve, reject) => {
             info.log('开始推送');
-            let transfer = await phone.push(phone.currentPhone.id, rpkPath, path.join(RUNTIME_RPK_PATH, path.basename(rpkPath)));
+
+            //todo:不能用path.join 因为在windows上面，destPath只能是 /data/local/tmp/ 不能是\data\local\tmp\
+            let destPath = RUNTIME_RPK_PATH + path.basename(rpkPath);
+            let transfer = await phone.push(phone.currentPhone.id, rpkPath, destPath);
             transfer.on('progress', function (stats) {
                 info.log(`推送中 ${stats.bytesTransferred} bytes`);
             });
@@ -274,7 +277,8 @@ class huawei extends base {
             return;
         }
         info.log('启动 runtime 中');
-        let rpkPath = path.join('file://', RUNTIME_RPK_PATH, rpkName);
+        //todo:不能用 path.join 因为在 windows 上面，destPath只能是 /data/local/tmp/ 不能是\data\local\tmp\
+        let rpkPath = "file://" + RUNTIME_RPK_PATH + rpkName;
         let shellCmd = `am start --es rpkpath ${rpkPath} ${param} --activity-clear-top com.huawei.fastapp.dev/com.huawei.fastapp.app.RpkRunnerActivity`;
         await phone.shell(phone.currentPhone.id, shellCmd);
         info.log('启动 runtime 完成');
