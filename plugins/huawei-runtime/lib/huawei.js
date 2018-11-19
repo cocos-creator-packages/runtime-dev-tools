@@ -246,12 +246,12 @@ class huawei extends base {
         this.state = RUNTIME_STATE.pushing;
         return new Promise(async(resolve, reject) => {
             info.log('开始推送');
-
-            //todo:不能用path.join 因为在windows上面，destPath只能是 /data/local/tmp/ 不能是\data\local\tmp\
             let destPath = RUNTIME_RPK_PATH + path.basename(rpkPath);
+            let size = fs.statSync(rpkPath).size;
+            //todo:不能用path.join 因为在windows上面，destPath只能是 /data/local/tmp/ 不能是\data\local\tmp\
             let transfer = await phone.push(phone.currentPhone.id, rpkPath, destPath);
             transfer.on('progress', function (stats) {
-                info.log(`推送中 ${stats.bytesTransferred} bytes`);
+                info.log(`推送中 ${parseInt(100 * stats.bytesTransferred / size)}%`);
             });
             transfer.on('end', function () {
                 resolve();
@@ -288,12 +288,11 @@ class huawei extends base {
      * 打开logcat记录日志
      */
     openLogcat() {
-        if (!this._checkPhoneConnect()) {
-            return;
-        }
-
         //不延迟启动的话，可能手机还在授权中，有概率报错无法启动
         setTimeout(() => {
+            if (!this._checkPhoneConnect()) {
+                return;
+            }
             const proc = spawn(phone.adbPath, ['-s', phone.currentPhone.id, 'shell', 'logcat', '-s', 'jsLog']);
             this.logList[phone.currentPhone.id] = proc;
             proc.stdout.on('data', (msg) => {

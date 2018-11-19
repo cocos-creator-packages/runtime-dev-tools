@@ -31,6 +31,10 @@ Editor.Panel.extend({
     ready () {
         //todo:因为有时候需要传入参数，但是run又在ready后面执行,而且如果没有参数就不执行run回调，所以只能做这个兼容
         process.nextTick(() => {
+            if (!phone.options || !phone.options.actualPlatform) {
+                Editor.error('快游戏工具找不到 runtime 组件信息，请从构建发布面板打开');
+                return;
+            }
             this.vm = new Vue({
                 el: this.shadowRoot,
                 data: home.data(),
