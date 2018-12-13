@@ -77,10 +77,10 @@ class huawei extends base {
 
     constructor() {
         super();
+        this.RUNTIME_STATE = RUNTIME_STATE;
         this.state = RUNTIME_STATE.free;
         this.runtimeApkPath = null;
         this.logList = {};
-        window.huawei = this;
     }
 
     get rpkPath() {

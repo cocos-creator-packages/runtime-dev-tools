@@ -21,12 +21,23 @@ exports.data = function () {
     return {
         rpkPath: huawei.rpkPath,
         params: "",
+        huawePlugin: huawei,
     };
 };
 
-exports.watch = {};
+exports.watch = {
 
-exports.computed = {};
+};
+
+exports.computed = {
+    runDisabled: function () {
+        return this.huawePlugin.state !== huawei.RUNTIME_STATE.free;
+    },
+
+    cancelDisabled: function () {
+        return this.huawePlugin.state !== huawei.RUNTIME_STATE.free;
+    },
+};
 
 exports.methods = {
     t (key) {
