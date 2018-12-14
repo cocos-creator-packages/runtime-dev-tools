@@ -1,10 +1,10 @@
 <div class="ui">
     <div class="play">
         <div class="play-layout">
-            <ui-button :is-disabled="runDisabled" class="transparent big play-btn" @click="launch">
+            <ui-button :disabled="runDisabled" :is-disabled="runDisabled" class="transparent big play-btn" @click="launch">
                 <i class="fa fa-play"></i>
             </ui-button>
-            <ui-button :is-disabled="cancelDisabled" class="transparent big play-btn" @click="stop">
+            <ui-button :disabled="cancelDisabled" :is-disabled="cancelDisabled" class="transparent big play-btn" @click="stop">
                 <i class="fa icon-cancel"></i>
             </ui-button>
         </div>

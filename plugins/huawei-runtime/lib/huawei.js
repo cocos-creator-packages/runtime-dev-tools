@@ -2,6 +2,7 @@
 const fs = require('fire-fs');
 const path = require('fire-path');
 const url = require('fire-url');
+const {promisify} = require('util');
 const {spawn} = require('child_process');
 const dialog = require('electron').remote.dialog;
 
@@ -22,14 +23,12 @@ const RUNTIME_RPK_PATH = '/data/local/tmp/';
 //runtime的包名
 const RUNTIME_PACKAGE_NAME = 'com.huawei.fastapp.dev';
 
-const RPK_DEFAULT_PATH = path.join('huawei', 'dist', 'huawei.rpk');
-
-
 const RUNTIME_STATE = {
     free: 0,//空闲
     downloading: 1,//下载runtime
     installing: 2,//安装runtime
     pushing: 3,//推数据到手机
+    launching: 4//apk启动中
 };
 
 
@@ -84,7 +83,12 @@ class huawei extends base {
     }
 
     get rpkPath() {
-        return path.join(phone.options.buildPath, RPK_DEFAULT_PATH);
+
+    }
+
+    async getRpkPath(){
+        let hwConfig = await promisify(Editor.Profile.load.bind(Editor.Profile))('profile://project/huawei-runtime.json');
+        return path.join(phone.options.buildPath, 'huawei', 'dist', `${hwConfig.data.package}.rpk`);
     }
 
     /**
@@ -277,11 +281,13 @@ class huawei extends base {
             return;
         }
         info.log('启动 runtime 中');
+        this.state = RUNTIME_STATE.launching;
         //todo:不能用 path.join 因为在 windows 上面，destPath只能是 /data/local/tmp/ 不能是\data\local\tmp\
         let rpkPath = "file://" + RUNTIME_RPK_PATH + rpkName;
         let shellCmd = `am start --es rpkpath ${rpkPath} ${param} --activity-clear-top com.huawei.fastapp.dev/com.huawei.fastapp.app.RpkRunnerActivity`;
         await phone.shell(phone.currentPhone.id, shellCmd);
         info.log('启动 runtime 完成');
+        this.state = RUNTIME_STATE.free;
     }
 
     /**

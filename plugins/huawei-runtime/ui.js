@@ -19,15 +19,13 @@ exports.props = [];
 
 exports.data = function () {
     return {
-        rpkPath: huawei.rpkPath,
+        rpkPath: "",
         params: "",
         huawePlugin: huawei,
     };
 };
 
-exports.watch = {
-
-};
+exports.watch = {};
 
 exports.computed = {
     runDisabled: function () {
@@ -105,6 +103,7 @@ exports.methods = {
             info.error('找不到rpk', this.rpkPath);
             return;
         }
+        await huawei.stopRuntime();
         await huawei.pushRpkToPhone(this.rpkPath);
         await huawei.startRuntimeWithRpk(path.basename(this.rpkPath), this.getLaunchParams());
     },
@@ -117,6 +116,7 @@ exports.methods = {
 exports.created = async function () {
     this.register_handler();
     await huawei.checkRuntimeVersion();
+    this.rpkPath = await huawei.getRpkPath();
 
 };
 
