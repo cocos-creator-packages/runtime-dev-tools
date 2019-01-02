@@ -61,7 +61,7 @@ exports.methods = {
     onChooseRpkPath (event) {
         event.stopPropagation();
         let res = Editor.Dialog.openFile({
-            defaultPath: path.join(Editor.projectInfo.path, '/temp/android-instant-games/profiles'),
+            defaultPath: path.join(Editor.projectInfo.path, '/build/huawei'),
             properties: ['openFile'],
             filters: [
                 {name: '华为 runtime rpk', extensions: ['rpk']}
