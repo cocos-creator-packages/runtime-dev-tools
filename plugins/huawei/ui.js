@@ -12,7 +12,7 @@ let phone = require(Editor.url('packages://runtime-dev-tools/utils/phone'));
 let log = require(Editor.url('packages://runtime-dev-tools/utils/log'));
 let info = require(Editor.url('packages://runtime-dev-tools/utils/info'));
 
-exports.template = fs.readFileSync(Editor.url('packages://runtime-dev-tools/plugins/huawei-runtime/ui.html'), 'utf-8');
+exports.template = fs.readFileSync(Editor.url('packages://runtime-dev-tools/plugins/huawei/ui.html'), 'utf-8');
 
 exports.name = "huawei-runtime";
 exports.props = [];
