@@ -61,7 +61,7 @@ exports.methods = {
     onChooseRpkPath (event) {
         event.stopPropagation();
         let res = Editor.Dialog.openFile({
-            defaultPath: path.join(Editor.projectInfo.path, '/build/huawei'),
+            defaultPath: path.join(Editor.projectInfo.path, '/build/huawei/dist'),
             properties: ['openFile'],
             filters: [
                 {name: '华为 runtime rpk', extensions: ['rpk']}

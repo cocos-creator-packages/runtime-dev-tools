@@ -5,6 +5,7 @@
     "author": "Cocos Creator",
     "main": "main.js",
     "panel": {
+        "save": false,
         "main": "panel/index.js",
         "type": "dockable",
         "title": "快游戏工具",
