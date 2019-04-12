@@ -86,7 +86,7 @@ class huawei extends base {
 
     }
 
-    async getRpkPath(){
+    async getRpkPath() {
         let hwConfig = await promisify(Editor.Profile.load.bind(Editor.Profile))('profile://project/huawei-runtime.json');
         return path.join(phone.options.buildPath, 'huawei', 'dist', `${hwConfig.data.package}.rpk`);
     }
@@ -293,13 +293,13 @@ class huawei extends base {
     /**
      * 打开logcat记录日志
      */
-    openLogcat() {
+    openLogcat(id) {
         //不延迟启动的话，可能手机还在授权中，有概率报错无法启动
         setTimeout(() => {
             if (!this._checkPhoneConnect()) {
                 return;
             }
-            const proc = spawn(phone.adbPath, ['-s', phone.currentPhone.id, 'shell', 'logcat', '-s', 'jsLog']);
+            const proc = spawn(phone.adbPath, ['-s', id, 'shell', 'logcat', '-s', 'jsLog']);
             this.logList[phone.currentPhone.id] = proc;
             proc.stdout.on('data', (msg) => {
                 log.log(msg.toString('utf-8'));
