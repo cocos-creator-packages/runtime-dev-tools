@@ -49,6 +49,7 @@
   overflow: scroll;
   display: block;
   background: #333;
+  user-select: initial;
   flex: 2;
 }
 .console .warn {

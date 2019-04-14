@@ -45,7 +45,7 @@ exports.methods = {
         phone.on('add_device', async(id) => {
             if (huawei.needToCreatLogcat(id)) {
                 await huawei.checkRuntime();
-                huawei.openLogcat();
+                huawei.openLogcat(id);
             }
         });
 
