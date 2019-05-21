@@ -1,4 +1,4 @@
-@import url('app://bower_components/fontawesome/css/font-awesome.min.css');
+@import url('app://node_modules/font-awesome/css/font-awesome.min.css');
 :host {
   display: flex;
 }
