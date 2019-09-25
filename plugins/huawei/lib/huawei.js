@@ -31,9 +31,6 @@ const RUNTIME_STATE = {
     launching: 4//apk启动中
 };
 
-function t(...params) {
-    return Editor.T(...params);
-}
 
 let _compareVersion = function (src, dest) {
     let large = false;
@@ -89,7 +86,7 @@ class huawei extends base {
 
     }
 
-    async getRpkPath() {
+    async getRpkPath(){
         let hwConfig = await promisify(Editor.Profile.load.bind(Editor.Profile))('profile://project/huawei-runtime.json');
         return path.join(phone.options.buildPath, 'huawei', 'dist', `${hwConfig.data.package}.rpk`);
     }
@@ -99,7 +96,7 @@ class huawei extends base {
      * @returns {Promise.<T>}
      */
     requestRuntimeVersion() {
-        info.log(t('runtime-dev-tools.check_runtime_version'));
+        info.log('正在检测 runtime 版本');
         return network.get(RUNTIME_REQUEST_URL).then((ret) => {
             ret = ret.toString();
             return JSON.parse(ret);
@@ -117,11 +114,11 @@ class huawei extends base {
         let urlParam = version.url.split('/');
         let runtimeVersion = urlParam[urlParam.length - 1];
         this.runtimeVersion = version.version;
-        log.debug(t('runtime-dev-tools.latest_runtime_version', {version: version.version}));
+        log.debug(`当前最新 runtime 版本:${version.version}`);
 
         let filePath = path.join(RUNTIME_DOWNLOAD_PATH, runtimeVersion);
         if (!fs.existsSync(filePath)) {
-            info.log(t('runtime-dev-tools.runtime_not_exists', {version: version}));
+            info.log(`本地不存在 ${version} 的 runtime，开始下载`);
             fs.ensureDirSync(RUNTIME_DOWNLOAD_PATH);
             this._downloadRuntimeApk(version.url, filePath);
         }
@@ -137,10 +134,10 @@ class huawei extends base {
     _downloadRuntimeApk(url, path) {
         this.state = RUNTIME_STATE.downloading;
         network.download(url, path, (progress) => {
-            info.log(t('runtime-dev-tools.runtime_downloading', {progress: progress.toFixed(2) * 100}));
+            info.log(`新版本 runtime 下载中 ${progress.toFixed(2) * 100}%`);
         }, (result) => {
             this.state = RUNTIME_STATE.free;
-            info.log(t('runtime-dev-tools.download_finish'));
+            info.log(`新版本 runtime 下载中完成`);
         });
     }
 
@@ -156,12 +153,12 @@ class huawei extends base {
         version = version.split("=");
 
         if (version.length <= 0) {
-            info.warn(t('runtime-dev-tools.can_not_find_runtime'));
+            info.warn(`获取不到runtime版本`);
             return
         }
 
         version = version[1];
-        log.debug(t('runtime-dev-tools.now_runtime_version', {version: version}));
+        log.debug('当前手机 runtime 版本', version);
         return this.compareRuntime(version);
     }
 
@@ -191,15 +188,15 @@ class huawei extends base {
      */
     async installRuntime() {
         if (!this.runtimeApkPath) {
-            info.error(t('runtime-dev-tools.can_not_find_apk'));
+            info.error('找不到 runtime apk');
             return;
         }
 
         this.state = RUNTIME_STATE.installing;
-        info.log(t('runtime-dev-tools.runtime_installing'));
+        info.log('runtime 安装中');
         await phone.install(phone.currentPhone.id, this.runtimeApkPath);
         this.state = RUNTIME_STATE.free;
-        info.log(t('runtime-dev-tools.runtime_installed',));
+        info.log('runtime 安装完成');
     }
 
     /**
@@ -218,29 +215,29 @@ class huawei extends base {
             return;
         }
 
-        info.log(t('runtime-dev-tools.check_installed_runtime_version'));
+        info.log('runtime 已安装，开始检测 runtime 版本');
         if (await this.checkPhoneRuntimeVersion()) {
             dialog.showMessageBox({
                 type: 'info',
-                title: t('runtime-dev-tools.runtime_update'),
-                message: t('runtime-dev-tools.dialog_msg'),
-                buttons: [t('runtime-dev-tools.confirm'), t('runtime-dev-tools.cancel')]
+                title: 'Runtime 更新',
+                message: 'runtime 版本有更新，是否安装?',
+                buttons: ['是', '否']
             }, async(response) => {
                 if (0 == response) {
                     await this.installRuntime();
                 } else {
-                    log.warn(t('runtime-dev-tools.cancel_runtime_tips'));
-                    info.warn(t('runtime-dev-tools.cancel_runtime_tips'));
+                    log.warn('您取消了 runtime 的更新，可能会导致您无法调试');
+                    info.warn('您取消了 runtime 的更新，可能会导致您无法调试');
                 }
             });
         } else {
-            info.log(t('runtime-dev-tools.check_latest_runtime_version'));
+            info.log('当前 runtime 版本为最新版本');
         }
     }
 
     _checkPhoneConnect() {
         if (!phone.currentPhone) {
-            info.warn(t('runtime-dev-tools.lose_phone_connect'));
+            info.warn('当前没有手机连接，请先连接手机');
             return false;
         }
         return true;
@@ -252,23 +249,23 @@ class huawei extends base {
         }
         this.state = RUNTIME_STATE.pushing;
         return new Promise(async(resolve, reject) => {
-            info.log(t('runtime-dev-tools.begin_push'));
+            info.log('开始推送');
             let destPath = RUNTIME_RPK_PATH + path.basename(rpkPath);
             let size = fs.statSync(rpkPath).size;
             //todo:不能用path.join 因为在windows上面，destPath只能是 /data/local/tmp/ 不能是\data\local\tmp\
             let transfer = await phone.push(phone.currentPhone.id, rpkPath, destPath);
             transfer.on('progress', function (stats) {
-                info.log(t('runtime-dev-tools.runtime_update', {progress: parseInt(100 * stats.bytesTransferred / size)}));
+                info.log(`推送中 ${parseInt(100 * stats.bytesTransferred / size)}%`);
             });
             transfer.on('end', function () {
                 resolve();
                 this.state = RUNTIME_STATE.free;
-                info.log(t('runtime-dev-tools.push_finish'));
+                info.log('推送完成');
             });
             transfer.on('error', (data) => {
                 reject();
                 this.state = RUNTIME_STATE.free;
-                info.error(t('runtime-dev-tools.push_error'));
+                info.error('推送错误');
             });
         });
     }
@@ -283,13 +280,13 @@ class huawei extends base {
         if (!this._checkPhoneConnect()) {
             return;
         }
-        info.log(t('runtime-dev-tools.start_runtime'));
+        info.log('启动 runtime 中');
         this.state = RUNTIME_STATE.launching;
         //todo:不能用 path.join 因为在 windows 上面，destPath只能是 /data/local/tmp/ 不能是\data\local\tmp\
         let rpkPath = "file://" + RUNTIME_RPK_PATH + rpkName;
         let shellCmd = `am start --es rpkpath ${rpkPath} ${param} --activity-clear-top com.huawei.fastapp.dev/com.huawei.fastapp.app.RpkRunnerActivity`;
         await phone.shell(phone.currentPhone.id, shellCmd);
-        info.log(t('runtime-dev-tools.start_runtime_finish'));
+        info.log('启动 runtime 完成');
         this.state = RUNTIME_STATE.free;
     }
 
@@ -337,7 +334,7 @@ class huawei extends base {
         if (!this._checkPhoneConnect()) {
             return;
         }
-        info.log(t('runtime-dev-tools.stop_runtime'));
+        info.log('停止 runtime');
         await phone.shell(phone.currentPhone.id, ' am force-stop com.huawei.fastapp.dev');
     }
 

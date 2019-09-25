@@ -8,7 +8,7 @@
         "save": false,
         "main": "panel/index.js",
         "type": "dockable",
-        "title": "i18n:runtime-dev-tools.title",
+        "title": "快游戏工具",
         "icon": "icon.png",
         "width": 900,
         "height": 600,

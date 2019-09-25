@@ -9,13 +9,13 @@
             </ui-button>
         </div>
     </div>
-    <ui-prop :name="t('runtime-dev-tools.rpk_path')">
-        <ui-input v-value="rpkPath" class="flex-1" :placeholder="t('runtime-dev-tools.rpk_path_placeholder')"></ui-input>
+    <ui-prop name="rpk路径">
+        <ui-input v-value="rpkPath" class="flex-1" placeholder="请选择rpk的路径"></ui-input>
         <ui-button class="tiny" v-on:confirm="onChooseRpkPath">···</ui-button>
     </ui-prop>
 
-    <ui-prop :name="t('runtime-dev-tools.rpk_params')">
-        <ui-input class="flex-1" v-value="params" :placeholder="t('runtime-dev-tools.rpk_params_placeholder')"></ui-input>
+    <ui-prop name="params">
+        <ui-input class="flex-1" v-value="params" placeholder="请输入参数的 json 字符串"></ui-input>
     </ui-prop>
 </div>
 
