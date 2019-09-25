@@ -64,7 +64,7 @@ exports.methods = {
             defaultPath: path.join(Editor.Project && Editor.Project.path ? Editor.Project.path : Editor.projectInfo.path, '/build/huawei/dist'),
             properties: ['openFile'],
             filters: [
-                {name: '华为 runtime rpk', extensions: ['rpk']}
+                {name: `${this.t('runtime-dev-tools.huawei')} runtime rpk`, extensions: ['rpk']}
             ],
         });
 
@@ -90,7 +90,7 @@ exports.methods = {
                 params.push('params');
                 params.push(encodeURIComponent(this.params));
             } catch (e) {
-                log.warn('输入的参数不是 JSON 格式，已被忽略');
+                log.warn(this.t('runtime-dev-tools.error_params'));
             }
         }
 
@@ -99,8 +99,8 @@ exports.methods = {
 
     async launch(){
         if (!fs.existsSync(this.rpkPath)) {
-            log.error('找不到rpk', this.rpkPath);
-            info.error('找不到rpk', this.rpkPath);
+            log.error(this.t('runtime-dev-tools.can_not_find_rpk'), this.rpkPath);
+            info.error(this.t('runtime-dev-tools.can_not_find_rpk'), this.rpkPath);
             return;
         }
         await huawei.stopRuntime();
