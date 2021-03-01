@@ -220,19 +220,18 @@ class huawei extends base {
 
         info.log(t('runtime-dev-tools.check_installed_runtime_version'));
         if (await this.checkPhoneRuntimeVersion()) {
-            dialog.showMessageBox({
+            const result = await dialog.showMessageBox({
                 type: 'info',
                 title: t('runtime-dev-tools.runtime_update'),
                 message: t('runtime-dev-tools.dialog_msg'),
                 buttons: [t('runtime-dev-tools.confirm'), t('runtime-dev-tools.cancel')]
-            }, async(response) => {
-                if (0 == response) {
-                    await this.installRuntime();
-                } else {
-                    log.warn(t('runtime-dev-tools.cancel_runtime_tips'));
-                    info.warn(t('runtime-dev-tools.cancel_runtime_tips'));
-                }
             });
+            if (0 === result.response) {
+                await this.installRuntime();
+            } else {
+                log.warn(t('runtime-dev-tools.cancel_runtime_tips'));
+                info.warn(t('runtime-dev-tools.cancel_runtime_tips'));
+            }
         } else {
             info.log(t('runtime-dev-tools.check_latest_runtime_version'));
         }
