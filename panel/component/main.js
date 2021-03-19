@@ -43,11 +43,11 @@ exports.components = {};
     dirs.forEach((name) => {
         let dirPath = path.join(Editor.url('packages://runtime-dev-tools/plugins/'), name);
         let uiEntry = path.join(Editor.url('packages://runtime-dev-tools/plugins/'), name, 'ui.js');
-        if (fs.isDirSync(dirPath) && fs.existsSync(uiEntry)) {
+        try {
             exports.components[name] = require(uiEntry);
-        } else {
+        }
+        catch (e) {
             Editor.warn(`load ${name} runtime dev plugin fail`);
         }
     })
-
 })();
