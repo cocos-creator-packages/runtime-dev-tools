@@ -7,8 +7,6 @@ const fs = require('fire-fs');
 const ps = require('fire-path'); // path system
 const console = require('../../utils/log'); // path system
 
-const Dialog = require('electron').remote.dialog;
-
 exports.template = fs.readFileSync(ps.join(__dirname, '../template/console.html'), 'utf-8');
 
 exports.props = [];

@@ -4,7 +4,7 @@ const path = require('fire-path');
 const url = require('fire-url');
 const {promisify} = require('util');
 const {spawn} = require('child_process');
-const dialog = require('electron').remote.dialog;
+const dialog = require('@electron/remote').dialog;
 
 const network = require('./network');
 

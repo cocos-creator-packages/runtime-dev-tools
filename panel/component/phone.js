@@ -6,7 +6,6 @@
 const fs = require('fs');
 const ps = require('path'); // path system
 const phone = require('../../utils/phone');
-const Dialog = require('electron').remote.dialog;
 
 exports.template = fs.readFileSync(ps.join(__dirname, '../template/phone.html'), 'utf-8');
 
