@@ -4,8 +4,6 @@ const fs = require('fire-fs');
 const phone = require('../../utils/phone');
 const path = require('fire-path'); // path system
 
-const Dialog = require('electron').remote.dialog;
-
 exports.components = {
     main: require('./main'),
     console: require('./console'),
