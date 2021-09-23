@@ -5,7 +5,7 @@
  */
 const fs = require('fire-fs');
 const path = require('fire-path'); // path system
-const dialog = require('electron').remote.dialog;
+const dialog = require('@electron/remote').dialog;
 const huawei = require('./lib/huawei');
 
 let phone = require(Editor.url('packages://runtime-dev-tools/utils/phone'));
